@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\User;
-use Illuminate\Support\Facades\Gate;
 use App\Services\OutletApiService;
 
 class UserController extends Controller

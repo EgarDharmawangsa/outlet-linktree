@@ -19,7 +19,7 @@ class UserSeeder extends Seeder
             'uuid' => Str::uuid(),
             'name' => 'Super Admin',
             'email' => 'superadmin@center',
-            'password' => bcrypt('superadmin1234'),
+            'password' => bcrypt('spa12345'),
             'is_super_admin' => true,
             'uuid_outlet' => null
         ]);

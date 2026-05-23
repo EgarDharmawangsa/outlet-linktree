@@ -56,7 +56,8 @@ if (document.getElementById('users-table')) {
                 }
             }
         ]
-    });  
+
+    })  
 
     // SYNC USER
     const sync_user_btn = document.getElementById('sync-user-btn');
@@ -153,6 +154,7 @@ if (document.getElementById('users-table')) {
 
             try {
                 const response = await fetch(`/api/pengguna/${user_form_data.get('uuid')}`, {
+                    credentials: 'include',
                     method: 'PUT',
                     body: user_form_data
                 });
@@ -205,6 +207,7 @@ if (document.getElementById('users-table')) {
 
         try {
             const response = await fetch(`/api/pengguna/${uuid}`, {
+                credentials: 'include',
                 method: 'DELETE'
             });
 
