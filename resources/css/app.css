@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+@import './auth.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+::-webkit-scrollbar {
+    margin-top: 0.5rem;
+    height: 8px;
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: none; 
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #9ca3af; 
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+tbody tr:nth-child(even) {
+    background-color: white;
+}
+
+td {
+    white-space: nowrap;
+    padding: 0.5rem 1rem;
+}
+
+.dt-layout-table {
+    overflow-x: auto;
+    margin: 1rem 0;
+    border-radius: 10px;
+    border: 1px solid #1f2937;
+}
+
+.dt-layout-row:not(.dt-layout-row.dt-layout-table) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.dt-length, .dt-search, .dt-paging {
+    background-color: #f3f4f6;
+    padding: 0.5rem;
+    border-radius: 8px;
+}
+
+.dt-empty {
+    padding: 0.5rem;
+    text-align: center;
+}
+
+#dt-search-0 {
+    margin-left: 0.5rem;
+}
+
+.dt-paging button,
+.dt-paging a {
+    margin: 0 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.dt-paging .current {
+    background-color: #4b5563;
+    color: white;
+}

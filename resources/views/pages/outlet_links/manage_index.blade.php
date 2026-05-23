@@ -1,0 +1,36 @@
+@extends('layouts.main')
+
+@section('container')
+    <div>
+        <h1 class="text-2xl text-gray-700 font-bold">KELOLA TAUTAN OUTLET</h1>
+
+        @can('super-admin')
+            <h1 class="text-md text-gray-500">Outlet: {{ $outlet['nama'] }}</h1>
+        @endcan
+
+        <button class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 mt-6 rounded-lg transition duration-300"
+                onclick="document.getElementById('create-outlet-link-modal').classList.remove('hidden')">Tambah</button>
+
+        <div class="mt-5 rounded-lg">
+            <table class="w-full bg-white" id="outlet-links-table" data-outlet-uuid="{{ $outlet['id'] }}">
+                <thead class="bg-gray-700 text-white">
+                    <tr>
+                        <th class="px-4 py-2 text-left">No.</th>
+                        <th class="px-4 py-2 text-left">Judul</th>
+                        <th class="px-4 py-2 text-left">Tautan</th>
+                        <th class="px-4 py-2 text-left">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-gray-100">
+                </tbody>
+            </table>
+        </div>
+
+        @can('super-admin')
+            <a href="{{ route('tautan-outlet.index') }}" class="inline-block bg-gray-600 hover:bg-gray-700 text-white mt-5 py-2 px-4 rounded-lg transition duration-300">Kembali</a>
+        @endcan
+
+        @include('modals.outlet_links.create_modal')
+        @include('modals.outlet_links.edit_modal')
+    </div>
+@endsection
