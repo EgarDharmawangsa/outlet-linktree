@@ -14,6 +14,8 @@
         <h1 class="text-2xl text-gray-700 font-bold mb-6">Tambah Tautan Outlet</h1>
 
         <form method="POST" class="space-y-4 flex flex-col" id="create-outlet-link-form">
+            @csrf
+            
             <input type="hidden" name="uuid_outlet" value="{{ $outlet['id'] }}">
 
             <div>

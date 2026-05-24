@@ -5,14 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Gate;
 use App\Models\User;
 use App\Services\OutletApiService;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         // if (!Gate::allows('super-admin')) {
@@ -26,17 +24,30 @@ class UserController extends Controller
 
     public function getUsers()
     {
-        return response()->json([
-            'data' => User::latest()->get()
-        ]);
-    }
+        if (!Gate::allows('super-admin')) {
+            abort(404);
+        }
 
+        try {
+            return response()->json([
+                'status' => 'success',
+                'data' => User::latest()->get(),
+                'message' => 'Data pengguna berhasil diambil.'
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengambil data pengguna.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     public function userSync(OutletApiService $outletApiService)
     {
-        // if (!Gate::allows('super-admin')) {
-        //     abort(404);
-        // }
+        if (!Gate::allows('super-admin')) {
+            abort(404);
+        }
 
         try {
             $outlets = $outletApiService->getOutlets();
@@ -75,7 +86,7 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data pengguna berhasil disinkronkan.'
-            ]);
+            ], 200);
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',
@@ -85,14 +96,11 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // if (!Gate::allows('super-admin')) {
-        //     abort(404);
-        // }
+        if (!Gate::allows('super-admin')) {
+            abort(404);
+        }
 
         try {
             $user = $request->validate([
@@ -111,7 +119,7 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Super Admin berhasil ditambahkan.'
-            ]);
+            ], 200);
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',
@@ -123,14 +131,11 @@ class UserController extends Controller
         // return redirect()->route('pengguna.index')->with('success', 'Super Admin berhasil ditambahkan.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, User $user)
     {
-        // if (!Gate::allows('super-admin')) {
-        //     abort(404);
-        // }
+        if (!Gate::allows('super-admin')) {
+            abort(404);
+        }
 
         try {
             $validated_user = $request->validate([
@@ -148,7 +153,7 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Pengguna berhasil diperbarui.'
-            ]);
+            ], 200);
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',
@@ -158,14 +163,11 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(User $user)
     {
-        // if (!Gate::allows('super-admin')) {
-        //     abort(404);
-        // }
+        if (!Gate::allows('super-admin')) {
+            abort(404);
+        }
 
         try {
             if ($user->is_super_admin) {
@@ -180,7 +182,7 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Pengguna berhasil dihapus.'
-            ]);
+            ], 200);
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',

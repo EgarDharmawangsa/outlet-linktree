@@ -14,6 +14,8 @@
         <h1 class="text-2xl text-gray-700 font-bold mb-6">Tambah Pengguna</h1>
 
         <form method="POST" class="space-y-4 flex flex-col" id="create-user-form">
+            @csrf
+            
             <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">Nama</label>
                 <input 

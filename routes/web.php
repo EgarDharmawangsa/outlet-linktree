@@ -33,6 +33,36 @@ Route::middleware('auth')->group(function () {
 
     // Logout
     Route::post('/keluar', [AuthController::class, 'logout'])->name('keluar');
+
+
+    // Ini untuk API
+    Route::prefix('api')->group(function () {
+        Route::prefix('pengguna')->group(function () {
+            Route::get('/', [UserController::class, 'getUsers']);
+            Route::post('/', [UserController::class, 'store']);
+            Route::get('/sinkronisasi', [UserController::class, 'userSync']);
+            Route::put('/{user}', [UserController::class, 'update']);
+            Route::delete('/{user}', [UserController::class, 'destroy']);
+        });
+        
+        Route::prefix('tautan-outlet')->group(function () {
+            // Route outlet
+            Route::get('/', [OutletLinkController::class, 'getOutlets']);
+        
+            // Route tautan outlet
+            Route::post('/', [OutletLinkController::class, 'store']);
+            Route::get('/sinkronisasi', [OutletLinkController::class, 'getOutlets'])->name('tautan-outlet.sync');
+
+            // Route Diagram
+            Route::get('/distribute-device/{uuid_outlet}', [OutletLinkController::class, 'getDistributeDevice']);
+            Route::get('/trend-click/{uuid_outlet}', [OutletLinkController::class, 'getClickTrend']);
+            Route::get('/top-click/{uuid_outlet}', [OutletLinkController::class, 'getTopClick']);
+
+            Route::get('/{uuid_outlet}', [OutletLinkController::class, 'getOutletLinks']);
+            Route::put('/{outlet_link}', [OutletLinkController::class, 'update']);
+            Route::delete('/{outlet_link}', [OutletLinkController::class, 'destroy']);
+        });
+    });
 });
    
 // Route untuk halaman publi

@@ -12,21 +12,26 @@ class OutletApiService
     {
         $cache = collect(
             Cache::remember('outlets', now()->addMinutes(10), function () {
-                $response = Http::withHeaders([
-                    'x-api-key' => env('API_KEY')
-                ])->get('http://slipgaji.apotekkuapp.com/api/json/cabang?fields[]=id&fields[]=nama&fields[]=alamat&fields[]=no_hp');
+                try {
+                    $response = Http::withHeaders([
+                        'x-api-key' => env('API_KEY')
+                    ])->get('http://slipgaji.apotekkuapp.com/api/json/cabang?fields[]=id&fields[]=nama&fields[]=alamat&fields[]=no_hp');
 
-                if (!$response->successful()) {
+                    if (!$response->successful()) {
+                        return [];
+                    }
+
+                    $outlets = collect($response->json())->map(function ($outlet) {
+                        $outlet['slug'] = Str::slug($outlet['nama']);
+
+                        return $outlet;
+                    });
+
+                    return $outlets->toArray();
+                } catch (\Throwable $e) {
+                    report($e);
                     return [];
                 }
-
-                $outlets = collect($response->json())->map(function ($outlet) {
-                    $outlet['slug'] = Str::slug($outlet['nama']);
-
-                    return $outlet;
-                });
-
-                return $outlets->toArray();
             })
         );
 
