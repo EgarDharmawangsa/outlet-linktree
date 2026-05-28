@@ -37,8 +37,4 @@ class Outlet extends Model
     public function getRouteKeyName() {
         return 'outlet_slug';
     } 
-
-    public function outletLinks() {
-        return $this->hasMany(OutletLink::class, 'id_outlet', 'id');
-    }
 }

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('outlet_links', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique()->index();
             $table->uuid('uuid_outlet')->index();
             $table->string('title', 100);
             $table->string('link', 255);

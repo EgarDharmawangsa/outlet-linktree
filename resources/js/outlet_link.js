@@ -3,7 +3,13 @@ import Chart from 'chart.js/auto';
 DataTable.ext.errMode = 'none';
 import Swal from 'sweetalert2';
 
-const outlet_uuid_value = document.getElementById('outlet-links-table')?.dataset.outletUuid ?? null;
+const uuid_outlet_value = document.getElementById('outlet-links-table')?.dataset.outletUuid ?? null;
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+}
 
 if (document.getElementById('outlets-table')) {
     // Outlets datatable
@@ -49,6 +55,8 @@ if (document.getElementById('outlets-table')) {
         sync_outlet_btn.addEventListener('click', async function (e) {
             e.preventDefault();
 
+            sync_outlet_btn.innerText = 'Memuat...';
+
             try {
                 const response = await fetch('/api/tautan-outlet/sinkronisasi');
 
@@ -59,12 +67,16 @@ if (document.getElementById('outlets-table')) {
                     title: result.message,
                     showConfirmButton: true
                 });                
+
+                sync_outlet_btn.innerText = 'Sinkronisasi Diagram';
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Terjadi Kesalahan',
                     showConfirmButton: true
                 });
+
+                sync_outlet_btn.innerText = 'Sinkronisasi Diagram';
             }
 
             outlets_table.ajax.reload();
@@ -74,7 +86,7 @@ if (document.getElementById('outlets-table')) {
 
 if (document.getElementById('outlet-links-table')) {
     // Outlet links datatable
-    const outlet_uuid = outlet_uuid_value;
+    const outlet_uuid = uuid_outlet_value;
     
     const outlet_links_table = new DataTable('#outlet-links-table', {
         ajax: '/api/tautan-outlet/' + outlet_uuid,
@@ -105,7 +117,7 @@ if (document.getElementById('outlet-links-table')) {
                             <button
                                 type="button"
                                 class="inline-block px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-300 edit-outlet-link-btn"
-                                data-id="${row.id}"
+                                data-uuid="${row.uuid}"
                                 data-title="${row.title}"
                                 data-link="${row.link}"
                             >
@@ -113,7 +125,7 @@ if (document.getElementById('outlet-links-table')) {
                             </button>
     
                             <button 
-                                data-id="${row.id}"
+                                data-uuid="${row.uuid}"
                                 type="submit"
                                 class="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300 delete-outlet-link-btn"
                             >
@@ -150,8 +162,12 @@ if (document.getElementById('outlet-links-table')) {
                     showConfirmButton: true
                 });
 
-                create_outlet_link_modal.classList.add('hidden');
-                create_outlet_link_form.reset(); 
+                if (response_data.status === 'success') {
+                    outlet_links_table.ajax.reload();
+                    create_outlet_link_modal.classList.add('hidden');
+                    create_outlet_link_form.reset(); 
+                    refreshChart();
+                }
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
@@ -159,8 +175,6 @@ if (document.getElementById('outlet-links-table')) {
                     showConfirmButton: true
                 });
             }
-
-            outlet_links_table.ajax.reload();
         });
     }
 
@@ -169,7 +183,7 @@ if (document.getElementById('outlet-links-table')) {
         const edit_outlet_link_btn = e.target.closest('.edit-outlet-link-btn');
 
         if (edit_outlet_link_btn) {
-            document.getElementById('edit-id').value = edit_outlet_link_btn.dataset.id;
+            document.getElementById('edit-uuid').value = edit_outlet_link_btn.dataset.uuid;
             document.getElementById('edit-title').value = edit_outlet_link_btn.dataset.title;
             document.getElementById('edit-link').value = edit_outlet_link_btn.dataset.link;
             document.getElementById('edit-outlet-link-modal').classList.remove('hidden');
@@ -186,7 +200,7 @@ if (document.getElementById('outlet-links-table')) {
             const outlet_link_form_data = new FormData(edit_outlet_link_form);
 
             try {
-                const response = await fetch(`/api/tautan-outlet/${outlet_link_form_data.get('id')}`, {
+                const response = await fetch(`/api/tautan-outlet/${outlet_link_form_data.get('uuid')}`, {
                     method: 'PUT',
                     body: outlet_link_form_data
                 });
@@ -199,10 +213,12 @@ if (document.getElementById('outlet-links-table')) {
                     showConfirmButton: true
                 });
 
-                outlet_links_table.ajax.reload();
-
-                edit_outlet_link_modal.classList.add('hidden');
-                edit_outlet_link_form.reset();
+                if (response_data.status === 'success') {
+                    outlet_links_table.ajax.reload();
+                    edit_outlet_link_modal.classList.add('hidden');
+                    edit_outlet_link_form.reset();
+                    refreshChart();
+                }
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
@@ -221,7 +237,7 @@ if (document.getElementById('outlet-links-table')) {
 
         e.preventDefault();
 
-        const id = delete_outlet_link_btn.dataset.id;
+        const uuid_outlet_link_value = delete_outlet_link_btn.dataset.uuid;
 
         const result_prompt = await Swal.fire({
             title: "Anda Yakin?",
@@ -237,8 +253,11 @@ if (document.getElementById('outlet-links-table')) {
         if (!result_prompt.isConfirmed) return;
 
         try {
-            const response = await fetch(`/api/tautan-outlet/${id}`, {
-                method: 'DELETE'
+            const response = await fetch(`/api/tautan-outlet/${uuid_outlet_link_value}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-XSRF-TOKEN': getCookie('XSRF-TOKEN')
+                }
             });
 
             const result = await response.json();
@@ -250,26 +269,100 @@ if (document.getElementById('outlet-links-table')) {
             });
 
             outlet_links_table.ajax.reload();
+
+            refreshChart();
         } catch (error) {
             Swal.fire({
                 icon: 'error',
-                title: 'Terjadi Kesalahan',
+                title: error,
                 showConfirmButton: true
             });
         }
     }); 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const store_click_array = document.querySelectorAll('.store-click');
+
+store_click_array.forEach(store_click => {
+    store_click.addEventListener('click', async function () {
+        const uuid_outlet_link_value = store_click.dataset.uuid;
+
+        try {
+            const response = await fetch(`/api/tautan-outlet/store-click`, {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': getCookie('XSRF-TOKEN'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    'uuid_outlet_link': uuid_outlet_link_value
+                })
+            });
+
+            const result = await response.json();
+
+            // console.log(result);
+        } catch (error) {
+            // console.log(error);
+        }
+    });
+});
+
+const sync_chart = document.getElementById('sync-chart');
 const daily_click_chart = document.getElementById('daily-click-chart');
 const top_click_chart = document.getElementById('top-click-chart');
 const device_distribute_chart = document.getElementById('device-distribute-chart');
 
-if (daily_click_chart && top_click_chart && device_distribute_chart) {
-    function dailyClickChart() {
-        const labels = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
-        const dataValues = [12, 19, 3, 5, 2, 15];
+if (sync_chart) {
+    sync_chart.addEventListener('click', function () {
+        sync_chart.innerText = 'Memuat...';
 
-        let daily_click_chart_instance;
+        try {
+            refreshChart();
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Diagram berhasil disinkronkan',
+                showConfirmButton: true
+            });
+
+            sync_chart.innerText = 'Sinkronisasi';
+        } catch (error) {
+            sync_chart.innerText = 'Sinkronisasi';
+            Swal.fire({
+                icon: 'error',
+                title: 'Terjadi Kesalahan',
+                showConfirmButton: true
+            });
+        }
+    });
+}
+
+let daily_click_chart_instance;
+let top_click_chart_instance;
+let device_distribute_chart_instance;
+
+async function dailyClickChart() {
+    try {
+        const response = await fetch(`/api/tautan-outlet/daily-click/${uuid_outlet_value}`);
+        const data = await response.json(); 
+
+        const days_data = Object.keys(data.data);
+        const clicks_data = Object.values(data.data);
 
         if (daily_click_chart_instance) {
             daily_click_chart_instance.destroy();
@@ -278,11 +371,11 @@ if (daily_click_chart && top_click_chart && device_distribute_chart) {
         daily_click_chart_instance = new Chart(daily_click_chart, {
             type: 'line',
             data: {
-                labels: labels,
+                labels: days_data,
                 datasets: [{
-                    label: 'Unit Terjual',
-                    data: dataValues,
-                    borderColor: '#dc2626', // Blue-500
+                    label: 'Jumlah',
+                    data: clicks_data,
+                    borderColor: '#dc2626',
                     borderWidth: 2,
                     tension: 0.3,
                     fill: false 
@@ -290,35 +383,39 @@ if (daily_click_chart && top_click_chart && device_distribute_chart) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // Izinkan chart berubah proporsi sesuai tinggi container
+                maintainAspectRatio: false,
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
                         }
                     }
                 },
                 plugins: {
                     legend: {
-                        display: true,
-                        position: 'top'
+                        display: false                            
                     }
                 }
             }
         });
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Terjadi Kesalahan',
+            showConfirmButton: true
+        });
     }
+}
 
-    function topClickChart() {
-        const topLabels = ['WhatsApp', 'Instagram', 'Catalog', 'Website', 'Location'];
-        const topDataValues = [120, 95, 70, 45, 30];
+async function topClickChart() {
+    try {
+        const response = await fetch(`/api/tautan-outlet/top-click/${uuid_outlet_value}`);
+        const data = await response.json(); 
 
-        let top_click_chart_instance;
+        const links_data = Object.keys(data.data);
+        const clicks_data = Object.values(data.data);
 
         if (top_click_chart_instance) {
             top_click_chart_instance.destroy();
@@ -327,99 +424,98 @@ if (daily_click_chart && top_click_chart && device_distribute_chart) {
         top_click_chart_instance = new Chart(top_click_chart, {
             type: 'bar',
             data: {
-                labels: topLabels,
+                labels: links_data,
                 datasets: [{
-                    label: 'Jumlah Klik',
-                    data: topDataValues,
+                    label: 'Jumlah',
+                    data: clicks_data,
                     backgroundColor: '#dc2626',
                     borderWidth: 1
                 }]
             },
             options: {
-                indexAxis: 'y', // KUNCI: Membuat bar menjadi horizontal
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
                     x: {
                         beginAtZero: true,
-                        grid: {
-                            display: true,
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    y: {
-                        grid: {
-                            display: false
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
                         }
                     }
                 },
                 plugins: {
                     legend: {
-                        display: false // Sembunyikan legenda jika hanya satu dataset
+                        display: false
                     }
                 }
             }
         });
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Terjadi Kesalahan',
+            showConfirmButton: true
+        });
     }
+}
 
-    async function deviceDistributeChart() {
-        try {
-            const response = await fetch(`/api/tautan-outlet/distribute-device/${outlet_uuid_value}`);
-            const data = await response.json(); 
+async function deviceDistributeChart() {
+    try {
+        const response = await fetch(`/api/tautan-outlet/distribute-device/${uuid_outlet_value}`);
+        const data = await response.json(); 
 
-            console.log(data);    
-
-            let device_distribute_chart_instance;
-
-            if (device_distribute_chart_instance) {
-                device_distribute_chart_instance.destroy();
-            }
-
-            device_distribute_chart_instance = new Chart(device_distribute_chart, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Desktop', 'Mobile', 'Tablet'],
-                    datasets: [{
-                        label: 'Distribusi Perangkat',
-                        data: [data.data.desktop, data.data.mobile, data.data.tablet],
-                        backgroundColor: [
-                            '#dc2626',
-                            '#1f2937',
-                            '#f59e0b' 
-                        ],
-                        hoverOffset: 10,
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 30
-                            }
-                        }
-                    },
-                    cutout: '60%'
-                }
-            });
-        } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Terjadi Kesalahan',
-                showConfirmButton: true
-            });
+        if (device_distribute_chart_instance) {
+            device_distribute_chart_instance.destroy();
         }
-    }
 
-    function refreshChart() {
+        device_distribute_chart_instance = new Chart(device_distribute_chart, {
+            type: 'doughnut',
+            data: {
+                labels: ['Desktop', 'Mobile', 'Tablet'],
+                datasets: [{
+                    label: 'Jumlah',
+                    data: [data.data.desktop, data.data.mobile, data.data.tablet],
+                    backgroundColor: [
+                        '#dc2626',
+                        '#1f2937',
+                        '#f59e0b' 
+                    ],
+                    hoverOffset: 10,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 30
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Terjadi Kesalahan',
+            showConfirmButton: true
+        });
+    }
+}
+
+function refreshChart() {
+    if (daily_click_chart && top_click_chart && device_distribute_chart) {
         dailyClickChart();
         topClickChart();
         deviceDistributeChart();
     }
-
-    refreshChart();
 }
+
+refreshChart();

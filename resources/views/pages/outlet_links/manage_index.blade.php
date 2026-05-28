@@ -9,7 +9,9 @@
         @endcan
 
         {{-- Chart disini --}}
-        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 my-8">
+        <button class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 mt-5 rounded-lg transition duration-300" id="sync-chart">Sinkronisasi Diagram</button>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mt-5 mb-8">
             <div class="bg-gray-100 p-4 rounded-xl flex flex-col">
                 <h1 class="text-lg text-gray-700 font-bold">Jenis Perangkat Pengunjung</h1>
                 <p class="mb-6">Distribusi perangkat pengunjung.</p>

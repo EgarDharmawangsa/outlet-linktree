@@ -17,6 +17,10 @@
             <li>
                 <a href="{{ route('tautan-outlet.index') }}" class="block px-3 py-2 rounded-lg hover:bg-red-900 transition duration-300 {{ request()->routeIs('tautan-outlet.*') ? 'bg-red-600' : '' }}">Tautan Outlet</a>
             </li>
+
+            <li class="mt-5">
+                <button class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition duration-300" id="sync-data">Sinkronisasi Data</button>
+            </li>
         @endcan
 
         @can('admin')

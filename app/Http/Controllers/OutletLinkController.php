@@ -8,9 +8,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use App\Services\OutletApiService;
 use Illuminate\Support\Str;
-use Jenssegers\Agent\Agent;
 use App\Models\OutletVisitLog;
-use Illuminate\Support\Facades\DB;
+use App\Models\OutletLinkClick;
 
 class OutletLinkController extends Controller
 {
@@ -93,13 +92,15 @@ class OutletLinkController extends Controller
         }
 
         try {
-            $validated_outlet = $request->validate([
+            $validated_outlet_link = $request->validate([
                 'uuid_outlet' => 'required|uuid',
                 'title' => 'required|string|min:3|max:100',
                 'link'  => 'required|string|min:3|max:255'
             ]);
 
-            OutletLink::create($validated_outlet);
+            $validated_outlet_link['uuid'] = Str::uuid();
+
+            OutletLink::create($validated_outlet_link);
 
             return response()->json([
                 'status' => 'success',
@@ -108,8 +109,7 @@ class OutletLinkController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Tautan outlet gagal ditambahkan.',
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -135,8 +135,7 @@ class OutletLinkController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Tautan outlet gagal diperbarui.',
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -166,6 +165,13 @@ class OutletLinkController extends Controller
     // Show public 
     public function showPublic(String $outlet_slug, OutletApiService $outlet_api_service)
     {
+        // Ini untuk fallbacknya
+        OutletLink::findBySlug($outlet_slug) ? redirect()->route('masuk') : null;
+
+        if (!empty($outlet_slug_result)) {
+            return redirect()->route('masuk');
+        }    
+
         $outlets = $outlet_api_service->getOutlets();
 
         $outlet = $outlets->first(fn($outlet) => Str::slug($outlet['nama']) === $outlet_slug);
@@ -174,22 +180,8 @@ class OutletLinkController extends Controller
             return redirect()->route('masuk');
         }
 
-        // Pengecean device
-        $agent = new Agent();
-
-        if (!$agent->isRobot()) {
-            $device = 'desktop';
-            if ($agent->isTablet()) {
-                $device = 'tablet';
-            } elseif ($agent->isMobile()) {
-                $device = 'mobile';
-            }
-
-            OutletVisitLog::create([
-                'uuid_outlet' => $outlet['id'],
-                'device' => $device,
-            ]);
-        }
+        // Ini untuk pengecekan device
+        OutletVisitLog::detectDevice($outlet['id']);
 
         $outlet_links = OutletLink::where('uuid_outlet', $outlet['id'])->latest()->get();
 
@@ -207,10 +199,7 @@ class OutletLinkController extends Controller
         }
 
         try {
-            $data = OutletVisitLog::where('uuid_outlet', $uuid_outlet)
-                        ->select('device', DB::raw('count(*) as total'))
-                        ->groupBy('device')
-                        ->pluck('total', 'device');
+            $data = OutletVisitLog::getDistributeDeviceData($uuid_outlet);
 
             return response()->json([
                 'data' => $data,
@@ -226,17 +215,73 @@ class OutletLinkController extends Controller
         }
     }
 
-    public function getClickTrend(String $uuid_outlet)
-    {
-        if (!Gate::allows('super-admin') && Auth::user()->uuid_outlet !== $uuid_outlet) {
-            abort(404);
-        }
-    }
-
     public function getTopClick(String $uuid_outlet)
     {
         if (!Gate::allows('super-admin') && Auth::user()->uuid_outlet !== $uuid_outlet) {
             abort(404);
+        }
+
+        try {
+            $data = OutletLinkClick::getTopClickData($uuid_outlet);
+
+            return response()->json([
+                'data' => $data,
+                'status' => 'success',
+                'message' => 'Data top klik tautan berhasil diambil.'
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal top mengambil data klik tautan.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getDailyClick(String $uuid_outlet)
+    {
+        if (!Gate::allows('super-admin') && Auth::user()->uuid_outlet !== $uuid_outlet) {
+            abort(404);
+        }
+
+        try {
+            $data = OutletLinkClick::getDailyClickData($uuid_outlet);
+
+            return response()->json([
+                'data' => $data,
+                'status' => 'success',
+                'message' => 'Data klik tautan berhasil diambil.'
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengambil data klik tautan.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function storeClick(Request $request)
+    {
+        try {
+            $validated_outlet_link_click = $request->validate([
+                'uuid_outlet_link' => 'required|uuid'
+            ]);
+
+            OutletLinkClick::create([
+                'uuid_outlet_link' => $validated_outlet_link_click['uuid_outlet_link']
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Klik tautan berhasil disimpan.'
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal menyimpan klik tautan.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

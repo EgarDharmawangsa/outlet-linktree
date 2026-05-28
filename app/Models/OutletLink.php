@@ -29,7 +29,17 @@ class OutletLink extends Model
 
     protected $guarded = ['id'];
 
-    public function outlet() {
-        return $this->belongsTo(Outlet::class, 'id_outlet', 'id');
+    public function getRouteKeyName() {
+        return 'uuid';
+    }
+
+    public static function findBySlug(String $outlet_slug) {
+        $result = self::where('link', $outlet_slug)->exists();
+
+        return $result;
+    }
+
+    public function outletLinkClicks() {
+        return $this->hasMany(OutletLinkClick::class, 'uuid_outlet_link', 'uuid');
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
-use App\Services\OutletApiService;
+// use App\Services\OutletApiService;
 
 class UserController extends Controller
 {
@@ -43,59 +43,60 @@ class UserController extends Controller
         }
     }
 
-    public function userSync(OutletApiService $outletApiService)
-    {
-        if (!Gate::allows('super-admin')) {
-            abort(404);
-        }
+    // public function userSync(OutletApiService $outletApiService)
+    // {
+    //     if (!Gate::allows('super-admin')) {
+    //         abort(404);
+    //     }
 
-        try {
-            $outlets = $outletApiService->getOutlets();
+    //     try {
+    //         $outlets = $outletApiService->getOutlets();
 
-            if ($outlets->isEmpty()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Tidak ada outlet untuk disinkronkan.'
-                ]);
-            }
+    //         if ($outlets->isEmpty()) {
+    //             return response()->json([
+    //                 'status' => 'error',
+    //                 'message' => 'Tidak ada outlet untuk disinkronkan.'
+    //             ]);
+    //         }
 
-            $defaultPassword = Hash::make('Apotekku');
-            $now = now();
+    //         $defaultPassword = Hash::make('Apotekku');
+    //         $now = now();
 
-            $rows = [];
+    //         $rows = [];
 
-            foreach ($outlets as $outlet) {
-                $rows[] = [
-                    'uuid' => Str::uuid(),
-                    'uuid_outlet' => $outlet['id'],
-                    'name' => $outlet['nama'],
-                    'email' => Str::slug($outlet['nama'], '') . '@outlet',
-                    'password' => $defaultPassword,
-                    'is_super_admin' => false,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-            }
+    //         foreach ($outlets as $outlet) {
+    //             $rows[] = [
+    //                 'uuid' => Str::uuid(),
+    //                 'uuid_outlet' => $outlet['id'],
+    //                 'name' => $outlet['nama'],
+    //                 'email' => Str::slug($outlet['nama'], '') . '@outlet',
+    //                 'password' => $defaultPassword,
+    //                 'is_super_admin' => false,
+    //                 'created_at' => $now,
+    //                 'updated_at' => $now,
+    //             ];
+    //         }
 
-            User::upsert(
-                $rows,
-                ['uuid_outlet'],
-                ['name', 'email', 'is_super_admin', 'updated_at']
-            );
+    //         User::upsert(
+    //             $rows,
+    //             ['uuid_outlet'],
+    //             ['name', 'email', 'is_super_admin', 'updated_at']
+    //         );
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Data pengguna berhasil disinkronkan.'
-            ], 200);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Data pengguna gagal disinkronkan.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'status' => 'success',
+    //             'message' => 'Data pengguna berhasil disinkronkan.'
+    //         ], 200);
+    //     } catch (\Throwable $e) {
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => 'Data pengguna gagal disinkronkan.',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
+    
     public function store(Request $request)
     {
         if (!Gate::allows('super-admin')) {
@@ -104,7 +105,7 @@ class UserController extends Controller
 
         try {
             $user = $request->validate([
-                'name' => 'required|string|min:1|max:100',
+                'name' => 'required|string|min:3|max:100',
                 'email' => 'required|string|unique:users,email|min:5|max:255',
                 'password' => 'required|string|min:8|max:255'
             ]);
@@ -123,8 +124,7 @@ class UserController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menambahkan Super Admin.',
-                'error' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
 
@@ -139,7 +139,7 @@ class UserController extends Controller
 
         try {
             $validated_user = $request->validate([
-                'name' => 'required|string|min:1|max:100',
+                'name' => 'required|string|min:3|max:100',
                 'email' => "required|unique:users,email,{$user->id}|min:5|max:255",
                 'password' => 'nullable|string|min:8|max:255'
             ]);
@@ -157,8 +157,7 @@ class UserController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memperbarui pengguna.',
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ], 500);
         }
     }

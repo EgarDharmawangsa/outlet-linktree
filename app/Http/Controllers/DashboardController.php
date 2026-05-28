@@ -17,7 +17,8 @@ class DashboardController extends Controller
         if (!Gate::allows('super-admin')) {
             return view('pages.dashboard', [
                 'title' => 'Beranda',
-                'counted_links' => OutletLink::where('uuid_outlet', Auth::user()->uuid_outlet)->count()
+                'counted_links' => OutletLink::where('uuid_outlet', Auth::user()->uuid_outlet)->count(),
+                'outlet' => $outletApiService->getOutletById(Auth::user()->uuid_outlet)
             ]);
         }
 

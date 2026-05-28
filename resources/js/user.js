@@ -2,6 +2,12 @@ import DataTable from 'datatables.net-dt';
 DataTable.ext.errMode = 'none';
 import Swal from 'sweetalert2';
 
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+}
+
 if (document.getElementById('users-table')) {
     // DATATABLE USER
     const users_table = new DataTable('#users-table', {
@@ -60,36 +66,39 @@ if (document.getElementById('users-table')) {
     })  
 
     // SYNC USER
-    const sync_user_btn = document.getElementById('sync-user-btn');
+    // const sync_user_btn = document.getElementById('sync-user-btn');
 
-    if (sync_user_btn) {
-        sync_user_btn.addEventListener('click', async function (e) {
-            e.preventDefault();
+    // if (sync_user_btn) {
+    //     sync_user_btn.addEventListener('click', async function (e) {
+    //         e.preventDefault();
 
-            try {
-                const response = await fetch('/api/pengguna/sinkronisasi');
+    //         sync_user_btn.innerText = 'Memuat...';
 
-                const result = await response.json();
+    //         try {
+    //             const response = await fetch('/api/pengguna/sinkronisasi');
 
-                console.log(result);
+    //             const result = await response.json();
 
-                Swal.fire({
-                    icon: result.status,
-                    title: result.message,
-                    showConfirmButton: true
-                });
+    //             Swal.fire({
+    //                 icon: result.status,
+    //                 title: result.message,
+    //                 showConfirmButton: true
+    //             });
 
-                users_table.ajax.reload();
+    //             sync_user_btn.innerText = 'Sinkronisasi';
 
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Terjadi Kesalahan',
-                    showConfirmButton: true
-                });
-            }
-        });
-    }
+    //             users_table.ajax.reload();
+    //         } catch (error) {
+    //             Swal.fire({
+    //                 icon: 'error',
+    //                 title: 'Terjadi Kesalahan',
+    //                 showConfirmButton: true
+    //             });
+
+    //             sync_user_btn.innerText = 'Sinkronisasi';
+    //         }
+    //     });
+    // }
 
     // CREATE USER
     const create_user_from = document.getElementById('create-user-form');
@@ -109,22 +118,22 @@ if (document.getElementById('users-table')) {
 
                 const response_data = await response.json();
 
-                console.log(response_data);
-
                 Swal.fire({
                     icon: response_data.status,
                     title: response_data.message,
                     showConfirmButton: true
                 });
 
-                users_table.ajax.reload();
-
-                create_user_modal.classList.toggle('hidden');
-                create_user_from.reset(); 
+                if (response_data.status === 'success') {
+                    users_table.ajax.reload();
+                    create_user_modal.classList.toggle('hidden');
+                    create_user_from.reset(); 
+                }
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Terjadi Kesalahan',
+                    text: error.message,
                     showConfirmButton: true
                 });
             }
@@ -166,10 +175,11 @@ if (document.getElementById('users-table')) {
                     showConfirmButton: true
                 });
 
-                users_table.ajax.reload();
-
-                edit_user_modal.classList.add('hidden');
-                edit_user_form.reset();
+                if (response_data.status === 'success') {
+                    users_table.ajax.reload();
+                    edit_user_modal.classList.add('hidden');
+                    edit_user_form.reset();
+                }
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
@@ -177,7 +187,6 @@ if (document.getElementById('users-table')) {
                     showConfirmButton: true
                 });
             }
-
         });
     }
 
@@ -206,7 +215,10 @@ if (document.getElementById('users-table')) {
 
         try {
             const response = await fetch(`/api/pengguna/${uuid}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'X-XSRF-TOKEN': getCookie('XSRF-TOKEN')
+                }
             });
 
             const result = await response.json();

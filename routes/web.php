@@ -47,7 +47,7 @@ Route::middleware('auth')->group(function () {
         
         Route::prefix('tautan-outlet')->group(function () {
             // Route outlet
-            Route::get('/', [OutletLinkController::class, 'getOutlets']);
+            Route::get('/', [OutletLinkController::class, 'getOutlets'])->name('tautan-outlet.index');
         
             // Route tautan outlet
             Route::post('/', [OutletLinkController::class, 'store']);
@@ -55,8 +55,8 @@ Route::middleware('auth')->group(function () {
 
             // Route Diagram
             Route::get('/distribute-device/{uuid_outlet}', [OutletLinkController::class, 'getDistributeDevice']);
-            Route::get('/trend-click/{uuid_outlet}', [OutletLinkController::class, 'getClickTrend']);
             Route::get('/top-click/{uuid_outlet}', [OutletLinkController::class, 'getTopClick']);
+            Route::get('/daily-click/{uuid_outlet}', [OutletLinkController::class, 'getDailyClick']);
 
             Route::get('/{uuid_outlet}', [OutletLinkController::class, 'getOutletLinks']);
             Route::put('/{outlet_link}', [OutletLinkController::class, 'update']);
@@ -64,9 +64,14 @@ Route::middleware('auth')->group(function () {
         });
     });
 });
+
+Route::post('/api/tautan-outlet/store-click', [OutletLinkController::class, 'storeClick']);
    
 // Route untuk halaman publi
 Route::get('/{outlet_slug}', [OutletLinkController::class, 'showPublic'])->name('show-public');
 
 // Fallback/redirect
 Route::fallback([AuthController::class, 'redirect']);
+
+
+

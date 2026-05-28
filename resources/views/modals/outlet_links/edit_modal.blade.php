@@ -16,7 +16,7 @@
         <form method="POST" class="space-y-4 flex flex-col" id="edit-outlet-link-form">
             @csrf
             
-            <input type="hidden" id="edit-id" name="id">
+            <input type="hidden" id="edit-uuid" name="uuid">
 
             <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">Judul</label>

@@ -8,7 +8,7 @@
             <button class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition duration-300"
                 onclick="document.getElementById('create-user-modal').classList.remove('hidden')">Tambah</button>
 
-            <button class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition duration-300" id="sync-user-btn">Sinkronisasi</button>
+            {{-- <button class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition duration-300" id="sync-user-btn">Sinkronisasi</button> --}}
         </div>
 
         <div class="mt-5">

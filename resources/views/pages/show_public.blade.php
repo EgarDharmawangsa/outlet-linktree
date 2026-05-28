@@ -25,7 +25,8 @@
     <div class="mt-8 flex flex-wrap justify-center gap-4">
         @forelse ($outlet_links as $outlet_link)
             <a href="{{ $outlet_link['link'] }}"
-                class="block w-full sm:w-[calc(33.333%-1rem)] p-4 bg-gradient-to-tl from-red-700 to-red-500 text-white rounded-tl-xl rounded-br-xl shadow-lg font-bold hover:to-red-700 text-lg transition duration-300"
+                data-uuid="{{ $outlet_link['uuid'] }}"
+                class="store-click block w-full sm:w-[calc(33.333%-1rem)] p-4 bg-gradient-to-tl from-red-700 to-red-500 text-white rounded-tl-xl rounded-br-xl shadow-lg font-bold hover:to-red-700 text-lg transition duration-300"
                 target="_blank">
                 <div class="flex items-center">
                     <span>{{ $outlet_link['title'] }}</span>

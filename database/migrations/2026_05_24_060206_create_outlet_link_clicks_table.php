@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('outlet_link_clicks', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid_outlet_link')->index();
+            $table->foreign('uuid_outlet_link')->references('uuid')->on('outlet_links')->cascadeOnDelete();
             $table->timestamps();
         });
     }
